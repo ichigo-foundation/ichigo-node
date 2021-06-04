@@ -1,0 +1,26 @@
+{
+  "name": "ipfsserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pinata/sdk": "^1.1.13",
+    "axios": "^0.21.1",
+    "ethereumjs-util": "^7.0.8",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "hdkey": "^2.0.1",
+    "into-stream": "^6.0.0",
+    "ipfs-core": "^0.5.2",
+    "keccak256": "^1.0.2",
+    "orbit-db": "^0.26.0",
+    "stream-buffers": "^3.0.2",
+    "to-readable-stream": "^2.1.0"
+  }
+}
