@@ -1,12 +1,11 @@
-/* main.js */
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const app = express()
-const port = process.env.PORT || 3000
+const port = 3001 || process.env.PORT
 //
-const main = require('./main')
+const entry = require('./core/entry')
 const bodyParser = require('body-parser')
-
+//
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(function(req, res, next) {
@@ -16,12 +15,12 @@ app.use(function(req, res, next) {
     next()
 })
 app.use(fileUpload())
-
-const startApp = async () => {
-    console.log('initializing...')
-    await main(app)
+//
+const start = async () => {
+    await entry(app)
     app.listen(port)
-    console.log('[OK] server started on: ' + port)
+    console.log('Ready on port '+port)
 }
 
-startApp()
+start()
+
