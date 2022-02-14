@@ -37,12 +37,6 @@ class Instruction {
         })
     }
 
-    /**
-    * @params
-    * @params
-    *
-    * @callback
-    */
     static getKagi({filter}, callback){
         if(!filter){
             callback({error:ERROR.invalid_params})
@@ -60,15 +54,6 @@ class Instruction {
         .catch( _ => callback({error: ERROR.kagi_failure}) )
     }
 
-
-    /**
-    * Estimate the Mo/h cost in ichigo for a storage
-    *
-    * @params {size} size of data in Mo
-    * @params {time} time for storage in day
-    *
-    * @callback payload{cost}
-    */
     static getFsEstimate({size, time}, callback){
         FlashStorage.estimate(size, time, callback)
     }
@@ -116,12 +101,11 @@ class Instruction {
         .catch( e => callback({error:Error.kagi_failure}))
     }
 
-
     /**
-    * pin the file to ipfs & commit contract
+    * pin file to ipfs & commit contract
     *
-    * @params {bin} the file to pin
-    * @params {wire} the ichigo transfer intruction signed by user
+    * @params {bin} file to pin
+    * @params {wire} ichigo transfer intruction signed by requester
     *
     * @callback payload{cost}
     */
@@ -196,14 +180,13 @@ class Instruction {
     }
 
     static collect({docID}, identity, callback){
-        // unpin the docID, remove the kagis, remove the contract
         Promise.all([
             FlashStorage.collect(docID), // TODO handle wrong docID
             KagiLedger.remove({docID:docID}),
             KagiLedger.removeContract({_id:docID})
         ])
-        .then( _ => callback({error: ERROR.ok, payload: _ }))
-        .catch( _ => { console.log(_); callback({error: ERROR.kagi_failure, payload:_}) })
+        .then(_ => callback({error: ERROR.ok, payload: _ }))
+        .catch(_ => callback({error: ERROR.kagi_failure, payload: _}))
     }
 
 

@@ -15,7 +15,7 @@ module.exports.process = async (request, callback) => {
         var params = _payload ? JSON.parse(_payload) : {}
             params.bin = _bin
             params.wire = request.body.wire
-            params.timestamp = timestamp
+            params.timestamp = _timestamp
 
     }catch(_){
         callback({error: ERROR.invalid_request})
