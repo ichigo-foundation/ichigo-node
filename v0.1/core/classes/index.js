@@ -28,4 +28,4 @@ class Keypair {
     }
 }
 
-module.exports = Keypair
+exports.Keypair = Keypair

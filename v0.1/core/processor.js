@@ -1,7 +1,7 @@
 const Instruction = require('./instruction')
-const Keypair = require('./keypair')
-const {certif} = require('./utils')
 const ERROR = require('./error')
+const {certif} = require('./utils')
+const {Keypair} = require('./classes')
 
 module.exports.process = async (request, callback) => {
 
