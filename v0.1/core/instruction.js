@@ -16,12 +16,6 @@ class Instruction {
         'getFsEstimate',
     ]
 
-    /**
-    * @params
-    * @params
-    *
-    * @callback
-    */
     static getProfile({owner}, callback){
         if(!owner){
             callback({error:ERROR.invalid_params})
@@ -30,10 +24,7 @@ class Instruction {
 
         ProfileLedger.get(owner)
         .then(r => {
-            if(r)
-                callback({error: ERROR.ok, payload: r })
-            else
-                callback({error: ERROR.profile_not_found})
+            callback({error: r ? ERROR.ok : ERROR.profile_not_found, payload: r })
         })
     }
 
@@ -45,13 +36,10 @@ class Instruction {
 
         var ret = []
         KagiLedger.get(filter)
-        .then( c => {
-            c.forEach( k => {
-                delete k._id
-                ret.push(k)
-            }).then( _ => callback({error: ERROR.ok, payload: ret }))
+        .then(ret => {
+            callback({error: ERROR.ok, payload: ret })
         })
-        .catch( _ => callback({error: ERROR.kagi_failure}) )
+        .catch(_ => callback({error: ERROR.kagi_failure}) )
     }
 
     static getFsEstimate({size, time}, callback){
@@ -66,8 +54,8 @@ class Instruction {
         }
 
         ProfileLedger.create(identity, basic, timestamp)
-        .then( r => callback({error:ERROR.ok}))
-        .catch( e => { callback({error: ERROR.profile_already_set})})
+        .then(r => callback({error:ERROR.ok}))
+        .catch(e => { callback({error: ERROR.profile_already_set})})
     }
 
     static setKagi({audience, docID, key}, identity, callback){
@@ -78,8 +66,8 @@ class Instruction {
         }
 
         KagiLedger.set(identity, docID, audience, key)
-        .then( res => callback({error:ERROR.ok}))
-        .catch( res => callback({error:ERROR.kagi_failure}))
+        .then(res => callback({error:ERROR.ok}))
+        .catch(res => callback({error:ERROR.kagi_failure}))
     }
 
     static setManyKagi({docID, readerKeys}, identity, callback){
@@ -92,13 +80,13 @@ class Instruction {
         var proms = []
         for( let reader in readerKeys){
             proms.push( new Promise((resolve, reject) =>
-                KagiLedger.set(identity, docID, reader, readerKeys[reader]).then( _ => resolve(_)) )
+                KagiLedger.set(identity, docID, reader, readerKeys[reader]).then(_ => resolve(_)) )
             )
         }
 
         Promise.all(proms)
-        .then( _ => callback({error:Error.ok}))
-        .catch( e => callback({error:Error.kagi_failure}))
+        .then(_ => callback({error:Error.ok}))
+        .catch(e => callback({error:Error.kagi_failure}))
     }
 
     /**
@@ -118,10 +106,14 @@ class Instruction {
         let fs = new FlashStorage()
 
         fs.pack(identity, bin, wire)
-        .then( ok => fs.commit() )
-        .then( res =>  fs.pack(identity, size, time) )
-        .then( hash => callback({error:ERROR.ok, payload:{IpfsHash: hash}}) )
-        .catch( err => callback(err) )
+        .then(_ => fs.commit() )
+        .then(_ =>  fs.pack(identity, size, time) )
+        .then(_ =>  fs.seal() )
+        .then(hash => callback({error:ERROR.ok, payload:{IpfsHash: hash}}) )
+        .catch(err => {
+            fs.rollback()
+            .then(callback({error: err}))
+        })
 
     }
 
@@ -143,20 +135,20 @@ class Instruction {
 
     static unpin({hash}, identity, callback){
         FlashStorage.collect(hash)
-        .then( result => {
+        .then(result => {
             callback({error:ERROR.ok, payload:result})
         })
-        .catch( err => {
+        .catch(err => {
             callback({error:ERROR.storage_not_found})
         })
     }
 
     static unpinAll(params, identity, callback){
 
-        FlashStorage.listPin(callback).then( async (result) => {
+        FlashStorage.listPin()
+        .then(async (result) => {
             var hashs = result.rows.filter( a => a.date_unpinned == null).map( a => a.ipfs_pin_hash )
             for(var i in hashs) {
-                console.log(hashs[i])
                 await FlashStorage.collect(hashs[i])
             }
             callback({error:ERROR.ok, payload:hashs})
@@ -169,14 +161,9 @@ class Instruction {
             return
         }
 
-        var ret = []
         KagiLedger.getContracts(filter)
-        .then( c => {
-            c.forEach( k => {
-                ret.push(k)
-            }).then( _ => callback({error: ERROR.ok, payload: ret }))
-        })
-        .catch( _ => callback({error: ERROR.kagi_failure}) )
+        .then(ret => callback({error: ERROR.ok, payload: ret }))
+        .catch(_ => callback({error: ERROR.kagi_failure}) )
     }
 
     static collect({docID}, identity, callback){
